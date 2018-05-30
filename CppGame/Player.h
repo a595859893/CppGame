@@ -33,8 +33,8 @@ public:
 	int getEquipmentNum()const;
 	//获取玩家持有的装备，以数组下标为索引 
 	Equipment& getEquipment(const int index);
-	//让玩家持有一个装备，持有装备已满导致无法添加时返回false 
-	bool addEquipment(Equipment &equipment);
+	//让玩家持有装备，成功返回装备指针，持有装备已满导致无法添加时返回NULL
+	Equipment* addEquipment(Equipment &equipment);
 	//使用索引来进行管理英雄的删除 
 	bool removeEquipmentByIndex(const int index);
 private:

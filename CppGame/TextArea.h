@@ -10,13 +10,13 @@ class TextArea :public UIElement {
 public:
 	void init(int posX = 0, int posY = 0, int width = 3, int height = 3);
 
-	bool onKeyDown(const int key);
+	virtual bool onKeyDown(const int key);
 	void refresh();
 
 	//定位书写文字的起始坐标
 	void setWriteCursor(int posX, int posY);
-	//在组件上书写文字
-	bool writeLine(string str, int align = -1);
+	//在组件上书写文字,align代表字体对齐方式，strWidth代表多少宽度自动换行(默认超过组件宽度换行)
+	bool writeLine(string str, int align = -1, int strWidth = -1);
 	//跳转到下一行
 	void nextLine();
 	//清空该组件上绘制的文字

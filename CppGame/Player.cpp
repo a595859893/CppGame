@@ -34,11 +34,11 @@ bool Player::removeHeroByIndex(const int index) {
 int Player::getEquipmentNum()const { return equipmentNum; }
 Equipment& Player::getEquipment(int index) { return equipments[index]; }
 
-bool Player::addEquipment(Equipment &equipment) {
-	if (equipmentNum <= MAX_EQUIPMENT_NUM) {
+Equipment* Player::addEquipment(Equipment &equipment) {
+	if (equipmentNum < MAX_EQUIPMENT_NUM) {
 		equipments[equipmentNum] = equipment;
 		equipmentNum++;
-		return true;
+		return &equipments[equipmentNum];
 	}
 
 	return false;

@@ -2,6 +2,7 @@
 #define HERO_BUTTON_CPP
 
 #include "TextArea.h"
+#include <string>
 
 void TextArea::init(int posX, int posY, int width, int height)
 {
@@ -45,14 +46,15 @@ void TextArea::setWriteCursor(int posX, int posY)
 	this->cusorY = posY;
 }
 
-bool TextArea::writeLine(string str, int align)
+bool TextArea::writeLine(string str, int align, int strWidth)
 {
 	int length = str.length();
-	int space = width - cusorX;
+	int space = strWidth > 0 ? strWidth : width - cusorX;
 	int remain = 0;
 
+
 	while (remain < length) {
-		messages[messageNum] = TextMessage{ cusorX, cusorY,align, str };
+		messages[messageNum] = TextMessage{ cusorX, cusorY,align, str.substr(remain,space) };
 		messageNum++;
 
 		if (messageNum >= MAX_MESSAGE_NUM)
