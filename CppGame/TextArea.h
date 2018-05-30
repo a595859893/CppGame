@@ -8,10 +8,16 @@
 
 class TextArea :public UIElement {
 public:
+	//对组件进行初始化
 	void init(int posX = 0, int posY = 0, int width = 3, int height = 3);
 
-	virtual bool onKeyDown(const int key);
+	//获取上一个被按下的按键，获取后储存的按键将会被清除
+	int getPressedKey();
+	//刷新场景的UI界面
 	void refresh();
+	//处理按键信息
+	bool onKeyDown(const int key);
+
 
 	//定位书写文字的起始坐标
 	void setWriteCursor(int posX, int posY);
@@ -21,16 +27,22 @@ public:
 	void nextLine();
 	//清空该组件上绘制的文字
 	void clear();
-	//获取上一个被按下的按键，获取后储存的按键将会被清除
-	int getPressedKey();
+
 private:
+	//用于记录文本信息的结构体
 	typedef struct {
 		int posX, posY, align;
 		string msg;
 	}TextMessage;
 
-	int cusorX, cusorY, storedKey, messageNum;
+	int messageNum;
 	TextMessage messages[MAX_MESSAGE_NUM];
+
+
+	//当前游标位置
+	int cusorX, cusorY;
+	//存储的按键
+	int storedKey;
 };
 
 #endif // !HERO_BUTTON_H

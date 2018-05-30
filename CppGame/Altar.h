@@ -17,21 +17,25 @@ public:
 	Altar(string name, string description);
 	bool onKeyDown(const int key);
 private:
-	//用于保存消息提示
-	string tips;
+	//当英雄将被雇佣的时候做的动作
+	void onBuyHero(int index);
+	//随机生成一个可雇佣的英雄
+	void randomNewHero(int index);
+
+	//界面刷新函数
+	void refresh();
+
 
 	//可以雇佣的英雄、价格和对应UI组件按钮
 	Hero heros[MAX_MANAGE_HEROS];
 	int heroPrice[MAX_MANAGE_HEROS];
 	TextArea heroButton[MAX_MANAGE_HEROS];
 
-	void refresh();
+	//用于保存消息提示
+	string tips;
 
-	//当英雄将被雇佣的时候做的动作
-	void onBuyHero(int index);
-	//随机生成一个可雇佣的英雄
-	void randomNewHero(int index);
 
+	//英雄随机姓名用静态变量
 	static string firstName[MAX_FIRST_NAME_NUM];
 	static string lastName[MAX_LAST_NAME_NUM];
 };

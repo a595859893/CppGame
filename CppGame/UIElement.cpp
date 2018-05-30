@@ -103,7 +103,7 @@ void UIElement::link(UIElement * element, int position)
 
 void UIElement::jumpTo(UIElement *element) {
 	focusOn(element, this);
-	show(element);
+	//show(element);
 }
 void UIElement::moveTo(UIElement * element) {
 	focusOn(element, previousElement);
@@ -119,7 +119,6 @@ bool UIElement::isOnKeyHandle() { return onKeyHandle; }
 
 void UIElement::focusOn(UIElement * target, UIElement * backElement)
 {
-	previousElement = NULL;
 	onKeyFocus = (backElement == this);
 	onKeyHandle = false;
 	target->onKeyFocus = true;

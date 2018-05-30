@@ -102,7 +102,6 @@ int Hero::equip(Equipment &equipment){
 	for(int i = 0;i<MAX_EQUIP_NUM;i++){
 		if(equipped[i]==NULL){
 			equipped[i] = &equipment;
-			cout<<name<<" 装备了 "<<equipment.getName()<<endl;
 			appendAttackPoint(equipment.getAttackAppend());
 			appendDefencePoint(equipment.getDefenceAppend());
 			appendMaxManaPoint(equipment.getMaxManaPointAppend());
@@ -112,7 +111,6 @@ int Hero::equip(Equipment &equipment){
 		}
 	}
  
-	cout<<name<<" 尝试装备 "<<equipment.getName()<<" 但因为物品栏已满而失败了"<<endl;
 	return -1;
 }
 
@@ -129,19 +127,3 @@ void Hero::unequip(int index){
 Equipment& Hero::getEquip(int index){
 	return *equipped[index];
 }
-
-void Hero::print(){
-	cout<<endl<<endl<<"英雄姓名:"<<name<<endl;
-	cout<<"========属性========"<<endl;
-	cout<<"生命值:"<<healthPoint<<"/"<<maxHealthPoint<<endl; 
-	cout<<"魔力值:"<<manaPoint<<"/"<<maxManaPoint<<endl; 
-	cout<<"攻击力:"<<attackPoint<<endl; 
-	cout<<"防御力:"<<defencePoint<<endl; 
-	cout<<"======当前装备======"<<endl;
-	for(int i = 0;i<MAX_EQUIP_NUM;i++){
-		if(equipped[i]!=NULL){
-			equipped[i]->print();
-		}
-	} 
-	cout<<endl<<endl; 
-} 

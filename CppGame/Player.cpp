@@ -38,7 +38,7 @@ Equipment* Player::addEquipment(Equipment &equipment) {
 	if (equipmentNum < MAX_EQUIPMENT_NUM) {
 		equipments[equipmentNum] = equipment;
 		equipmentNum++;
-		return &equipments[equipmentNum];
+		return &equipments[equipmentNum - 1];
 	}
 
 	return false;
@@ -49,6 +49,21 @@ bool Player::removeEquipmentByIndex(const int index) {
 		equipmentNum--;
 		equipments[index] = equipments[equipmentNum];
 		return true;
+	}
+	int i, j;
+	for (i = 0; i < heroNum; i++) {
+		for (j = 0; j < MAX_EQUIPMENT_NUM; j++) {
+			if (&heros[i].getEquip(j) == &equipments[index]) {
+				heros[i].unequip(j);
+			}
+
+			if (&heros[i].getEquip(j) == &equipments[equipmentNum]) {
+				heros[i].unequip(j);
+				heros[i].equip(equipments[index]);
+			}
+
+		}
+
 	}
 
 	return false;

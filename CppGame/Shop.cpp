@@ -86,8 +86,8 @@ void Shop::refreshHero(int index)
 		heroButton[index].clear();
 		heroButton[index].setWriteCursor(1, 2);
 		heroButton[index].writeLine(getPlayer().getHero(index).getName());
-		heroButton[index].writeLine("体力:   " + to_string(getPlayer().getHero(index).getMaxHealthPoint()));
-		heroButton[index].writeLine("魔力:   " + to_string(getPlayer().getHero(index).getMaxManaPoint()));
+		heroButton[index].writeLine("体力:  " + to_string(getPlayer().getHero(index).getMaxHealthPoint()));
+		heroButton[index].writeLine("魔力:  " + to_string(getPlayer().getHero(index).getMaxManaPoint()));
 		heroButton[index].writeLine("攻击:  " + to_string(getPlayer().getHero(index).getAttackPoint()));
 		heroButton[index].writeLine("防御:  " + to_string(getPlayer().getHero(index).getDefencePoint()));
 	}
@@ -101,7 +101,7 @@ void Shop::refreshHero(int index)
 bool Shop::onKeyDown(const int key)
 {
 	tips = "";
-	int i;
+	int i, j;
 	if (isOnKeyHandle() && key == UIElement::KEY_OK) {
 		for (i = 0; i < MAX_SHOP_ITEM; i++)
 			show(&itemButton[i]);
@@ -111,43 +111,55 @@ bool Shop::onKeyDown(const int key)
 	}
 
 	bool press = Scene::onKeyDown(key);
-	for (i = 0; i < MAX_SHOP_ITEM; i++) {
-		int key = itemButton[i].getPressedKey();
-		if (key == UIElement::KEY_OK) {
-			equipIndex = i;
-			for (i = 0; i < MAX_HERO_NUM; i++) {
-				itemButton[i].show(&heroButton[i]);
-				refreshHero(i);
-			}
-
-			itemButton[i].jumpTo(&heroButton[0]);
-			return true;
-		}
-
-		if (itemButton[i].isOnKeyHandle()) {
-			inBuying = true;
-			inSelecting = false;
-		}
-	}
 
 	for (i = 0; i < MAX_HERO_NUM; i++) {
 		int key = heroButton[i].getPressedKey();
 		if (key == UIElement::KEY_OK) {
-			Equipment * equipment = onBuyItem(i);
-			if (equipment != NULL)
-				getPlayer().getHero(i).equip(*equipment);
-			return true;
+			if (getPlayer().getHeroNum() > i) {
+				onBuyItem(equipIndex, i);
+				heroButton[i].back();
+			}
+			else {
+				tips = "该栏位没有英雄，购买失败！";
+			}
+
+			press = true;
+			break;
 		}
 
-		if (heroButton[i].isOnKeyHandle()) {
-			inBuying = false;
-			inSelecting = true;
-		}
 	}
 
+	for (i = 0; i < MAX_SHOP_ITEM; i++) {
+		if (itemButton[i].isOnKeyHandle()) {
+			for (j = 0; j < MAX_HERO_NUM; j++)
+				hide(&heroButton[j]);
+
+			inBuying = true;
+			inSelecting = false;
+		}
+
+		int key = itemButton[i].getPressedKey();
+		if (key == UIElement::KEY_OK) {
+			equipIndex = i;
+			for (j = 0; j < MAX_HERO_NUM; j++) {
+				show(&heroButton[j]);
+				refreshHero(j);
+			}
+
+			itemButton[i].jumpTo(&heroButton[0]);
+			inBuying = false;
+			inSelecting = true;
+
+			press = true;
+			break;
+		}
+
+	}
+
+
+
 	if (isOnKeyHandle()) {
-		for (i = 0; i < MAX_SHOP_ITEM; i++)
-			hide(&itemButton[i]);
+		hideAll();
 	}
 
 	return press;
@@ -180,7 +192,7 @@ void Shop::refresh()
 	UIElement::refresh();
 }
 
-Equipment* Shop::onBuyItem(int index)
+Equipment* Shop::onBuyItem(int index, int heroIndex)
 {
 	if (getPlayer().getMoney() < itemPrice[index]) {
 		tips = "金钱不足，无法购买！";
@@ -190,12 +202,20 @@ Equipment* Shop::onBuyItem(int index)
 	Equipment* equipment = getPlayer().addEquipment(items[index]);
 
 	if (equipment == NULL) {
-		tips = "物品栏已满，无法购买！";
+		tips = "玩家物品栏已满，无法购买！";
 		return NULL;
 	}
 	else {
-		randomNewItem(index);
-		getPlayer().appendMoney(-itemPrice[index]);
+		if (getPlayer().getHero(heroIndex).equip(*equipment) != -1) {
+			refreshHero(heroIndex);
+			randomNewItem(index);
+			getPlayer().appendMoney(-itemPrice[index]);
+		}
+		else {
+			getPlayer().removeEquipmentByIndex(getPlayer().getEquipmentNum());
+			tips = "英雄物品栏已满，无法购买！";
+		}
+
 	}
 
 	return equipment;

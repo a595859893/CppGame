@@ -24,28 +24,8 @@ public:
 	Shop(string name, string description);
 	bool onKeyDown(const int key);
 private:
-	//用于保存消息提示
-	string tips;
-	//可以购买的装备、价格和对应UI组件按钮
-	Equipment items[MAX_SHOP_ITEM];
-	int itemPrice[MAX_SHOP_ITEM];
-	TextArea itemButton[MAX_SHOP_ITEM];
-
-	//记录将要购买的物品索引
-	int equipIndex;
-
-	//穿上装备时选择英雄用界面
-	TextArea heroButton[MAX_HERO_NUM];
-
-	//判断是否处于商品购买阶段
-	bool inBuying;
-	//判断是否处于选择英雄阶段
-	bool inSelecting;
-
-	void refresh();
-
 	//当装备将被购买时的动作，购买成功时返回装备指针，失败返回NULL
-	Equipment* onBuyItem(int index);
+	Equipment * onBuyItem(int index, int heroIndex);
 	//随机生成一个可供加入管理的英雄
 	void randomNewItem(int index);
 
@@ -55,7 +35,26 @@ private:
 
 	//刷新玩家英雄状态
 	void refreshHero(int index);
+	void refresh();
 
+
+	//可以购买的装备、价格
+	Equipment items[MAX_SHOP_ITEM];
+	int itemPrice[MAX_SHOP_ITEM];
+
+	//记录将要购买的物品索引
+	int equipIndex;
+	//判断是否处于商品购买、选择英雄阶段
+	bool inBuying, inSelecting;
+
+	//商品购买、选择英雄用界面
+	TextArea itemButton[MAX_SHOP_ITEM],
+		heroButton[MAX_HERO_NUM];
+	//用于保存消息提示
+	string tips;
+
+
+	//物品随机姓名用静态变量
 	static string prefixName[MAX_ITEM_PREFIX];
 	static string materialName[MAX_ITEM_MATERIAL];
 };

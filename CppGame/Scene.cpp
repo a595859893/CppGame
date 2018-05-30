@@ -3,8 +3,6 @@
 
 #include "Scene.h"
 
-string Scene::getName() const { return name; }
-string Scene::getDescription() const { return description; }
 
 Player & Scene::getPlayer()
 {
@@ -90,6 +88,9 @@ void Scene::showDescription()
 	print(width / 2, startHeight + 3, "\"" + getDescription() + "\"", UIElement::ALIGN_FRONT);
 	print(width / 2, startHeight + 4, "===按 'Z' 进入场景==", UIElement::ALIGN_FRONT);
 }
+
+string Scene::getName() const { return name; }
+string Scene::getDescription() const { return description; }
 
 Scene & Scene::getPresentScene() { return *presentScene; }
 Scene *Scene::presentScene = NULL;

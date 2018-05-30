@@ -109,12 +109,12 @@ void Altar::randomNewHero(int index)
 	heroButton[index].clear();
 	heroButton[index].setWriteCursor(1, 2);
 	heroButton[index].writeLine(heros[index].getName());
-	heroButton[index].writeLine("体力:   " + to_string(heros[index].getMaxHealthPoint()));
-	heroButton[index].writeLine("魔力:   " + to_string(heros[index].getMaxManaPoint()));
+	heroButton[index].writeLine("体力:  " + to_string(heros[index].getMaxHealthPoint()));
+	heroButton[index].writeLine("魔力:  " + to_string(heros[index].getMaxManaPoint()));
 	heroButton[index].writeLine("攻击:  " + to_string(heros[index].getAttackPoint()));
 	heroButton[index].writeLine("防御:  " + to_string(heros[index].getDefencePoint()));
 	heroButton[index].nextLine();
-	heroButton[index].writeLine("价格: " + to_string(heroPrice[index]));
+	heroButton[index].writeLine("价格:  " + to_string(heroPrice[index]));
 }
 
 string Altar::firstName[MAX_FIRST_NAME_NUM] = {
