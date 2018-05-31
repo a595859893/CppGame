@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "Altar.h"
 #include "Shop.h"
+#include "Battlefield.h"
 
 
 #define TOTAL_SCENE_NUM 2
@@ -18,14 +19,21 @@ int main(int argc, char** argv) {
 	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), true, &rc);
 	UIElement::bufferInit();
 
+
 	//场景和玩家数据初始化
 	Player player;
 	Altar altar("祭坛", "可雇佣英雄加入队伍");
 	Shop shop("商店", "可购买装备强化英雄");
+	Battlefield battlefield("战场", "可与敌人作战赚取金钱");
+
 
 	//连接场景路径
 	altar.link(UIElement::NEAR_LEFT, &shop);
 	shop.link(UIElement::NEAR_RIGHT, &altar);
+
+	altar.link(UIElement::NEAR_DOWN, &battlefield);
+	battlefield.link(UIElement::NEAR_UP, &altar);
+
 
 	//启动游戏
 	printWelcome();

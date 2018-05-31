@@ -30,8 +30,13 @@ private:
 	void randomNewItem(int index);
 
 	//初始化UI界面
+	void initScene();
 	void initEquipementButton();
 	void initHeroSelected();
+
+	//处理按键事件
+	bool handleKeyEquipment();
+	bool handleKeyHeroSelected();
 
 	//刷新玩家英雄状态
 	void refreshHero(int index);

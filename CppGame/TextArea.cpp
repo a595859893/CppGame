@@ -8,8 +8,8 @@ void TextArea::init(int posX, int posY, int width, int height)
 {
 	this->messageNum = 0;
 	this->storedKey = -1;
-	this->changePosition(posX, posY);
-	this->changeSize(width, height);
+	this->setPosition(posX, posY);
+	this->setSize(width, height);
 }
 
 bool TextArea::onKeyDown(const int key)

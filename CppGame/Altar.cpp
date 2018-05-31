@@ -4,6 +4,60 @@
 #include "Altar.h"
 
 Altar::Altar(string name, string description) :Scene(name, description) {
+	initHeroSelected();
+}
+
+bool Altar::onKeyDown(const int key)
+{
+	tips = "";
+
+	if (isOnKeyHandle() && key == UIElement::KEY_OK) {
+		initScene();
+		return true;
+	}
+
+	bool press = Scene::onKeyDown(key);
+	press |= handleHeroKey();
+
+	if (isOnKeyHandle()) {
+		hideAll();
+	}
+
+	return press;
+}
+
+void Altar::refresh()
+{
+	printBoundary(isOnKeyFocus());
+
+	if (!isOnKeyHandle()) {
+		print(width / 2, 2, "持有金钱:" + to_string(getPlayer().getMoney()), UIElement::ALIGN_FRONT);
+		print(width / 2, 3, tips, UIElement::ALIGN_FRONT);
+
+		int startHeight = height / 3 * 2 + 1;
+		print(width / 2, startHeight + 1, "←'、'→'键选择不同的英雄", UIElement::ALIGN_FRONT);
+		print(width / 2, startHeight + 2, "'Z'键花费金钱将选中其加入队伍", UIElement::ALIGN_FRONT);
+		print(width / 2, startHeight + 3, "'X'键离开祭坛", UIElement::ALIGN_FRONT);
+	}
+	else {
+		showPath();
+		showDescription();
+	}
+
+	UIElement::refresh();
+}
+
+void Altar::initScene()
+{
+	int i;
+	for (i = 0; i < MAX_MANAGE_HEROS; i++)
+		show(&heroButton[i]);
+
+	jumpTo(&heroButton[0]);
+}
+
+void Altar::initHeroSelected()
+{
 	int interval = (width - HERO_BUTTON_WIDTH * MAX_MANAGE_HEROS) / (MAX_MANAGE_HEROS + 2);
 	int startWidth = (width - (interval + HERO_BUTTON_WIDTH) * MAX_MANAGE_HEROS + 1) / 2;
 	int i;
@@ -25,22 +79,11 @@ Altar::Altar(string name, string description) :Scene(name, description) {
 		randomNewHero(i);
 
 	}
-
 }
 
-bool Altar::onKeyDown(const int key)
+bool Altar::handleHeroKey()
 {
-	tips = "";
 	int i;
-	if (isOnKeyHandle() && key == UIElement::KEY_OK) {
-		for (i = 0; i < MAX_MANAGE_HEROS; i++)
-			show(&heroButton[i]);
-
-		jumpTo(&heroButton[0]);
-		return true;
-	}
-
-	bool press = Scene::onKeyDown(key);
 	for (i = 0; i < MAX_MANAGE_HEROS; i++) {
 		int key = heroButton[i].getPressedKey();
 		if (key == UIElement::KEY_OK) {
@@ -49,32 +92,7 @@ bool Altar::onKeyDown(const int key)
 		}
 	}
 
-	if (isOnKeyHandle()) {
-		for (i = 0; i < MAX_MANAGE_HEROS; i++)
-			hide(&heroButton[i]);
-	}
-
-	return press;
-}
-
-void Altar::refresh()
-{
-	printBoundary(isOnKeyFocus());
-
-	if (!isOnKeyHandle()) {
-		print(width / 2, 2, "持有金钱:" + to_string(getPlayer().getMoney()), UIElement::ALIGN_FRONT);
-		print(width / 2, 3, tips, UIElement::ALIGN_FRONT);
-		int startHeight = height / 3 * 2 + 1;
-		print(width / 2, startHeight + 1, "←'、'→'键选择不同的英雄", UIElement::ALIGN_FRONT);
-		print(width / 2, startHeight + 2, "'Z'键花费金钱将选中其加入队伍", UIElement::ALIGN_FRONT);
-		print(width / 2, startHeight + 3, "'X'键离开祭坛", UIElement::ALIGN_FRONT);
-	}
-	else {
-		showPath();
-		showDescription();
-	}
-
-	UIElement::refresh();
+	return false;
 }
 
 void Altar::onBuyHero(int index)

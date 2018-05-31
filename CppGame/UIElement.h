@@ -47,6 +47,14 @@ public:
 	void back();
 
 
+	//修改UI组件所在的位置
+	void setPosition(int x, int y);
+	//修改UI组件的宽高
+	void setSize(int width, int height);
+	//设置UI组件是否可以默认通过返回键返回父级组件
+	void setBackEnable(bool enable);
+
+
 	//数据获取函数
 	UIElement& getPreviousElement();
 	bool isOnKeyFocus();
@@ -89,12 +97,6 @@ protected:
 	void focusOn(UIElement *target, UIElement *backElement);
 
 
-	//修改UI组件所在的位置
-	void changePosition(int x, int y);
-	//修改UI组件的宽高
-	void changeSize(int width, int height);
-
-
 	//用自定字符填满该控件
 	void fillWith(char fill);
 	//在UI组件的窗口内的相对坐标下打印字符 ,aligne为对齐方式，详见ALIGN_开头的静态常量
@@ -120,6 +122,9 @@ private:
 	//记录该UI组件上方显示的UI
 	UIElement *showElement[MAX_SHOWN_ELEMENT];
 	int showElementNum;
+
+	//是否可以默认通过返回键返回父级组件
+	bool backEnable;
 
 
 	//控制台界面刷新用静态变量

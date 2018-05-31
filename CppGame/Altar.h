@@ -22,6 +22,11 @@ private:
 	//随机生成一个可雇佣的英雄
 	void randomNewHero(int index);
 
+	//初始化UI界面
+	void initScene();
+	void initHeroSelected();
+	//处理按键事件
+	bool handleHeroKey();
 	//界面刷新函数
 	void refresh();
 

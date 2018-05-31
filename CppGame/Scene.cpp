@@ -3,12 +3,6 @@
 
 #include "Scene.h"
 
-
-Player & Scene::getPlayer()
-{
-	return *player;
-}
-
 Scene::Scene(string name, string description) :
 	UIElement(0, 0, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT),
 	name(name), description(description), player(NULL) {
@@ -91,6 +85,7 @@ void Scene::showDescription()
 
 string Scene::getName() const { return name; }
 string Scene::getDescription() const { return description; }
+Player & Scene::getPlayer() { return *player; }
 
 Scene & Scene::getPresentScene() { return *presentScene; }
 Scene *Scene::presentScene = NULL;

@@ -6,7 +6,7 @@
 using namespace std;
 
 UIElement::UIElement(int posX, int posY, int width, int height) :
-	posX(posX), posY(posY), width(width), height(height),
+	posX(posX), posY(posY), width(width), height(height), backEnable(true),
 	previousElement(NULL), showElementNum(0), onKeyFocus(false), onKeyHandle(false) {
 	int i;
 	for (i = 0; i < KEY_NUM; i++) {
@@ -51,14 +51,6 @@ bool UIElement::hide(UIElement *element) {
 	return false;
 }
 
-void UIElement::refresh() {
-	int i;
-	for (i = 0; i < showElementNum; i++)
-		showElement[i]->refresh();
-}
-
-void UIElement::onShow() {}
-
 void UIElement::hideAll()
 {
 	int i;
@@ -69,11 +61,20 @@ void UIElement::hideAll()
 	showElementNum = 0;
 }
 
+void UIElement::onShow() {}
+
+void UIElement::refresh() {
+	int i;
+	for (i = 0; i < showElementNum; i++)
+		showElement[i]->refresh();
+}
+
+
 bool UIElement::onKeyDown(const int key) {
 	int i;
 
 	if (isOnKeyHandle()) {
-		if (key == UIElement::KEY_CANCEL && previousElement != NULL) {
+		if (key == UIElement::KEY_CANCEL && backEnable && previousElement != NULL) {
 			back();
 			return true;
 		}
@@ -101,22 +102,6 @@ void UIElement::link(UIElement * element, int position)
 	nearElement[position] = element;
 }
 
-void UIElement::jumpTo(UIElement *element) {
-	focusOn(element, this);
-	//show(element);
-}
-void UIElement::moveTo(UIElement * element) {
-	focusOn(element, previousElement);
-}
-void UIElement::back() {
-	focusOn(previousElement, NULL);
-	hideAll();
-}
-
-UIElement & UIElement::getPreviousElement() { return *previousElement; }
-bool UIElement::isOnKeyFocus() { return onKeyFocus; }
-bool UIElement::isOnKeyHandle() { return onKeyHandle; }
-
 void UIElement::focusOn(UIElement * target, UIElement * backElement)
 {
 	onKeyFocus = (backElement == this);
@@ -128,37 +113,38 @@ void UIElement::focusOn(UIElement * target, UIElement * backElement)
 		target->previousElement = backElement;
 }
 
-void UIElement::changePosition(int x, int y)
+void UIElement::jumpTo(UIElement *element) {
+	focusOn(element, this);
+	//show(element);
+}
+
+void UIElement::moveTo(UIElement * element) {
+	focusOn(element, previousElement);
+}
+
+void UIElement::back() {
+	focusOn(previousElement, NULL);
+	hideAll();
+}
+
+
+void UIElement::setPosition(int x, int y)
 {
 	posX = x;
 	posY = y;
 }
 
-void UIElement::changeSize(int width, int height)
+void UIElement::setSize(int width, int height)
 {
 	this->width = width;
 	this->height = height;
 }
 
-void UIElement::print(int relativeX, int relativeY, string str, int align) {
-	COORD coord;
-	coord.X = posX + relativeX;
-	coord.Y = posY + relativeY;
-	switch (align)
-	{
-	case(ALIGN_FRONT):
-		coord.X -= (short)str.length() / 2;
-		break;
-	case(ALIGN_RIGHT):
-		coord.X -= (short)str.length();
-		break;
-	default:
-		break;
-	}
-
-	SetConsoleCursorPosition(hout, coord);
-	cout << str;
+void UIElement::setBackEnable(bool enable)
+{
+	backEnable = enable;
 }
+
 
 void UIElement::triggerKeyDown(const int key)
 {
@@ -181,6 +167,28 @@ int UIElement::keyTodirection(int key)
 			return i;
 	}
 	return -1;
+}
+
+
+
+void UIElement::print(int relativeX, int relativeY, string str, int align) {
+	COORD coord;
+	coord.X = posX + relativeX;
+	coord.Y = posY + relativeY;
+	switch (align)
+	{
+	case(ALIGN_FRONT):
+		coord.X -= (short)str.length() / 2;
+		break;
+	case(ALIGN_RIGHT):
+		coord.X -= (short)str.length();
+		break;
+	default:
+		break;
+	}
+
+	SetConsoleCursorPosition(hout, coord);
+	cout << str;
 }
 
 void UIElement::printLineVerticle(int relativeX, int relativeY, int length, bool solid) {
@@ -221,6 +229,8 @@ void UIElement::printBoundary(bool isFocus) {
 	printLineVerticle(width - 1, 0, height, isFocus);
 }
 
+
+
 void UIElement::putBufferScene()
 {
 	DWORD written = 0;
@@ -260,6 +270,11 @@ void UIElement::bufferInit()
 	SetConsoleActiveScreenBuffer(houtBuffer);
 }
 
+
+
+UIElement & UIElement::getPreviousElement() { return *previousElement; }
+bool UIElement::isOnKeyFocus() { return onKeyFocus; }
+bool UIElement::isOnKeyHandle() { return onKeyHandle; }
 
 const int UIElement::KEY_DIRECTIONS[KEY_NUM] = {
 	UIElement::KEY_UP,
