@@ -115,11 +115,11 @@ void Altar::randomNewHero(int index)
 {
 	string name = firstName[rand() % MAX_FIRST_NAME_NUM] + lastName[rand() % MAX_LAST_NAME_NUM];
 	int maxHp = 15 + rand() % 30;
-	int maxMp = 10 + rand() % 20;
+	int maxMp = 5 + rand() % 15;
 	int attack = 5 + rand() % 3;
 	int def = 2 + rand() % 2;
 
-	int price = maxHp / 10 + maxMp / 5 + attack * 2 + def * 5 + rand() % 10;
+	int price = maxHp / 6 + maxMp * 3 + attack + def * 6 + rand() % 10;
 
 	heros[index] = Hero(name, maxHp, maxMp, attack, def);
 	heroPrice[index] = price;

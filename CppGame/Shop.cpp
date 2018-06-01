@@ -21,9 +21,13 @@ bool Shop::onKeyDown(const int key)
 		return true;
 	}
 
+
 	bool press = Scene::onKeyDown(key);
-	press |= handleKeyEquipment();
-	press |= handleKeyHeroSelected();
+
+	if (isOnKeyFocus()) {
+		press |= handleKeyHeroSelected();
+		press |= handleKeyEquipment();
+	}
 
 	if (isOnKeyHandle()) {
 		hideAll();
@@ -46,14 +50,15 @@ Equipment* Shop::onBuyItem(int index, int heroIndex)
 		return NULL;
 	}
 	else {
-		if (getPlayer().getHero(heroIndex).equip(*equipment) != -1) {
+		if (getPlayer().getHero(heroIndex)->equip(*equipment) != -1) {
+			getPlayer().appendMoney(-itemPrice[index]);
 			refreshHero(heroIndex);
 			randomNewItem(index);
-			getPlayer().appendMoney(-itemPrice[index]);
 		}
 		else {
 			getPlayer().removeEquipmentByIndex(getPlayer().getEquipmentNum());
 			tips = "英雄物品栏已满，无法购买！";
+			return NULL;
 		}
 
 	}
@@ -115,7 +120,7 @@ void Shop::randomNewItem(int index)
 	}
 
 	items[index] = Equipment(prefix + material + typeName, atk, def, hp, mp);
-	price = atk * 2 + mp * 3 + hp / 2 + def * 5 + rand() % 5;
+	price = atk * 5 + mp * 3 + hp / 5 + def * 8 + rand() % 5;
 	itemPrice[index] = price;
 
 	itemButton[index].setWriteCursor(0, 0);
@@ -217,8 +222,8 @@ bool Shop::handleKeyEquipment()
 		if (key == UIElement::KEY_OK) {
 			equipIndex = i;
 			for (j = 0; j < MAX_HERO_NUM; j++) {
-				show(&heroButton[j]);
 				refreshHero(j);
+				show(&heroButton[j]);
 			}
 
 			itemButton[i].jumpTo(&heroButton[0]);
@@ -229,6 +234,8 @@ bool Shop::handleKeyEquipment()
 		}
 
 	}
+
+	return false;
 }
 
 bool Shop::handleKeyHeroSelected()
@@ -237,32 +244,35 @@ bool Shop::handleKeyHeroSelected()
 	for (i = 0; i < MAX_HERO_NUM; i++) {
 		int key = heroButton[i].getPressedKey();
 		if (key == UIElement::KEY_OK) {
-			if (getPlayer().getHeroNum() > i) {
-				onBuyItem(equipIndex, i);
-				heroButton[i].back();
-			}
-			else {
+			if (getPlayer().getHeroNum() <= i) {
 				tips = "该栏位没有英雄，购买失败！";
+				return true;	
+			}
+
+			if(onBuyItem(equipIndex, i) != NULL) {
+				heroButton[i].back();
 			}
 
 			return true;
 		}
 
 	}
+
+	return false;
 }
 
 void Shop::refreshHero(int index)
 {
 	if (getPlayer().getHeroNum() > index) {
-		Hero hero = getPlayer().getHero(index);
+		Hero *hero = getPlayer().getHero(index);
 
 		heroButton[index].clear();
 		heroButton[index].setWriteCursor(1, 2);
-		heroButton[index].writeLine(hero.getName());
-		heroButton[index].writeLine("体力:  " + to_string(hero.getMaxHealthPoint()));
-		heroButton[index].writeLine("魔力:  " + to_string(hero.getMaxManaPoint()));
-		heroButton[index].writeLine("攻击:  " + to_string(hero.getAttackPoint()));
-		heroButton[index].writeLine("防御:  " + to_string(hero.getDefencePoint()));
+		heroButton[index].writeLine(hero->getName());
+		heroButton[index].writeLine("体力:  " + to_string(hero->getMaxHealthPoint()));
+		heroButton[index].writeLine("魔力:  " + to_string(hero->getMaxManaPoint()));
+		heroButton[index].writeLine("攻击:  " + to_string(hero->getAttackPoint()));
+		heroButton[index].writeLine("防御:  " + to_string(hero->getDefencePoint()));
 	}
 	else {
 		heroButton[index].clear();

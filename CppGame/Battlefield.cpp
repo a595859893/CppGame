@@ -5,6 +5,11 @@
 
 Battlefield::Battlefield(string name, string description) :Scene(name, description)
 {
+	actionIndex = 0;
+	heroIndex = 0;
+	targetIndex = 0;
+	enemyTurnIndex = -1;
+
 	initEnemyButton();
 	initHeroSelected();
 	initAction();
@@ -15,7 +20,59 @@ Battlefield::Battlefield(string name, string description) :Scene(name, descripti
 
 void Battlefield::onDoingAction()
 {
+	Hero *hero = getPlayer().getHero(heroIndex);
+	int manaCost = 5 + hero->getManaPoint() / 3;
+	bool needTarget = true;
 
+	switch (actionIndex) {
+	case ACTION_WAIT:
+		needTarget = false;
+		lateMessage(hero->getName() + " 伺机而动");
+		onActionDone();
+		break;
+	case ACTION_MAGIC:
+		if (hero->getManaPoint() < manaCost) {
+			tips = "没有足够的魔力释放魔法！";
+			needTarget = false;
+		}
+		break;
+	}
+
+	if (needTarget) {
+		actionButton[actionIndex].jumpTo(&enemyButton[0]);
+	}
+}
+
+void Battlefield::onDoingActionToTarget(int target)
+{
+	Hero *hero = getPlayer().getHero(heroIndex);
+	int magicDamage = hero->getMaxManaPoint();
+	int manaCost = 5 + hero->getManaPoint() / 3;
+
+	switch (actionIndex) {
+	case ACTION_ATTACK:
+		lateMessage(hero->getName() + " 对 " + enemy[target].getName() + " 发起攻击");
+		hero->attackTo(enemy[targetIndex]);
+		break;
+	case ACTION_MAGIC:
+		lateMessage(hero->getName() + " 对 " + enemy[target].getName() + " 施展魔法");
+		hero->useMagicTo(enemy[targetIndex], magicDamage, manaCost);
+		break;
+	}
+
+	refreshEnemy(targetIndex);
+	onActionDone();
+}
+
+void Battlefield::onActionDone()
+{
+	if (enemyButton[targetIndex].isOnKeyHandle())
+		enemyButton[targetIndex].back();
+	if (actionButton[actionIndex].isOnKeyHandle())
+		actionButton[actionIndex].back();
+
+	heroTurn[heroIndex] = TURN_TYPE_END;
+	refreshHero(heroIndex);
 }
 
 void Battlefield::randomNewEnemy(int index)
@@ -51,20 +108,157 @@ bool Battlefield::onKeyDown(const int key)
 		return true;
 	}
 
-
 	bool press = Scene::onKeyDown(key);
-	press |= handleHeroKey();
-	press |= handleActionKey();
-	press |= handleEnemyKey();
+
+	if (isOnKeyFocus()) {
+		hide(&textButton);
+
+		if (!stateCheck()) {
+			press |= handleEnemyKey();
+			press |= handleActionKey();
+			press |= handleHeroKey();
+		}
+		else {
+			if (isOnKeyHandle())
+				hideAll();
+
+			return true;
+		}
+
+	}
+
 	return press;
 }
 
 void Battlefield::enemyTurn()
 {
+	enemyTurnIndex = enemyNum;
+	lateMessage("敌人的回合");
+}
+
+void Battlefield::enemyAction(int index)
+{
+	if (enemy[index].isDead()) {
+		lateMessage(enemy[index].getName() + " 无法再战");
+		return;
+	}
+
+	int i;
+	int heroNum = getPlayer().getHeroNum();
+	int target = rand() % heroNum;
+	for (i = 0; i < heroNum; i++) {
+		Hero *hero = getPlayer().getHero(target + i % heroNum);
+		if (!hero->isDead()) {
+			enemy[index].attackTo(*hero);
+			refreshEnemy(index);
+			refreshHero(target + i % heroNum);
+
+			lateMessage(enemy[index].getName() + " 对 " + hero->getName() + " 发起攻击");
+			return;
+		}
+	}
+
+	lateMessage(enemy[index].getName() + " 伺机而动");
 }
 
 void Battlefield::finishTurn()
 {
+	int i;
+	for (i = 0; i < getPlayer().getHeroNum(); i++) {
+		if (!getPlayer().getHero(i)->isDead())
+			heroTurn[i] = TURN_TYPE_ACTIVE;
+		else
+			heroTurn[i] = TURN_TYPE_STUNNED;
+
+		refreshHero(i);
+		refreshEnemy(i);
+	}
+}
+
+bool Battlefield::stateCheck()
+{
+	int i, heroNum = getPlayer().getHeroNum();
+
+	if (enemyTurnIndex > 0) {
+		enemyTurnIndex--;
+		enemyAction(enemyTurnIndex);
+		if (enemyTurnIndex == 0) {
+			finishTurn();
+		}
+		return true;
+	}
+
+
+	bool nextTurn = true;
+	bool lose = true;
+	bool win = true;
+	for (i = 0; i < heroNum; i++) {
+		if (heroTurn[i] == TURN_TYPE_ACTIVE) {
+			nextTurn = false;
+		}
+
+		if (!getPlayer().getHero(i)->isDead()) {
+			lose = false;
+		}
+	}
+
+	for (i = 0; i < enemyNum; i++) {
+		if (!enemy[i].isDead())
+			win = false;
+	}
+
+	if (win || lose) {
+		if (win) {
+			int money = 30 + rand() % 50;
+			getPlayer().appendMoney(money);
+			print(5, height - 5, "战斗胜利，你获得了 " + to_string(money) + " 的金钱奖励！");
+			for (i = 0; i < heroNum; i++) {
+				Hero *hero = getPlayer().getHero(i);
+				hero->setHealthPoint(hero->getMaxHealthPoint());
+				hero->setManaPoint(hero->getMaxManaPoint());
+				randomEnemys();
+			}
+		}
+
+		if (lose) {
+			int randLeave = rand() % heroNum;
+			for (i = 0; i < heroNum; i++) {
+				Hero *hero = getPlayer().getHero(i);
+				hero->setHealthPoint(hero->getMaxHealthPoint());
+				hero->setManaPoint(hero->getMaxManaPoint());
+			}
+			print(5, height - 5, "战斗失败，你仓促逃离了！");
+			print(5, height - 4, getPlayer().getHero(randLeave)->getName() + " 心灰意冷地退出了队伍。");
+			getPlayer().removeHeroByIndex(randLeave);
+		}
+
+		for (i = 0; i < MAX_ENEMY_NUM; i++)
+			enemyButton[i].back();
+		for (i = 0; i < MAX_ACTION_NUM; i++)
+			actionButton[i].back();
+		for (i = 0; i < MAX_HERO_NUM; i++)
+			heroButton[i].back();
+
+
+		/*
+		if (enemyButton[targetIndex].isOnKeyHandle())
+			enemyButton[targetIndex].back();
+		if (actionButton[actionIndex].isOnKeyHandle())
+			actionButton[actionIndex].back();
+		if (heroButton[heroIndex].isOnKeyHandle())
+			heroButton[heroIndex].back();
+		*/
+
+
+		return true;
+	}
+	else if (nextTurn) {
+		enemyTurn();
+		return true;
+	}
+
+
+	return false;
 }
 
 bool Battlefield::handleHeroKey()
@@ -81,20 +275,25 @@ bool Battlefield::handleHeroKey()
 
 		int key = heroButton[i].getPressedKey();
 		if (key == UIElement::KEY_OK) {
-
-			if (getPlayer().getHeroNum() > i) {
-				heroIndex = i;
-				inAction = true;
-				inSelecting = false;
-				for (j = 0; j < MAX_ACTION_NUM; j++) {
-					refreshAction(j);
-					show(&actionButton[j]);
-				}
-				heroButton[i].jumpTo(&actionButton[0]);
-			}
-			else {
+			if (getPlayer().getHeroNum() <= i) {
 				tips = "该栏不存在英雄！";
+				return true;
 			}
+
+			if (heroTurn[i] != TURN_TYPE_ACTIVE) {
+				tips = "该英雄本回合无法继续行动！";
+				return true;
+			}
+
+			heroIndex = i;
+			inAction = true;
+			inSelecting = false;
+			for (j = 0; j < MAX_ACTION_NUM; j++) {
+				refreshAction(j);
+				show(&actionButton[j]);
+			}
+			heroButton[i].jumpTo(&actionButton[0]);
+
 
 			return true;
 		}
@@ -105,29 +304,76 @@ bool Battlefield::handleHeroKey()
 
 bool Battlefield::handleActionKey()
 {
+	int i;
+	for (i = 0; i < MAX_ACTION_NUM; i++) {
+		if (actionButton[i].isOnKeyHandle()) {
+			inAction = true;
+			inTarget = false;
+		}
+
+		int key = actionButton[i].getPressedKey();
+		if (key == UIElement::KEY_OK) {
+			inAction = false;
+			inTarget = true;
+			actionIndex = i;
+			onDoingAction();
+			return true;
+		}
+	}
+
 	return false;
 }
 
 bool Battlefield::handleEnemyKey()
 {
+	int i;
+	for (i = 0; i < MAX_ENEMY_NUM; i++) {
+		int key = enemyButton[i].getPressedKey();
+		if (key == UIElement::KEY_OK) {
+			if (enemyNum <= i) {
+				tips = "该栏不存在敌人！";
+				return true;
+			}
+			if (enemy[i].isDead()) {
+				tips = "敌人已死亡！";
+				return true;
+			}
+			targetIndex = i;
+			onDoingActionToTarget(targetIndex);
+			return true;
+		}
+	}
+
 	return false;
 }
 
 
 void Battlefield::initScene()
 {
+	finishTurn();
+
 	int i;
-	for (i = 0; i < MAX_HERO_NUM; i++) {
-		refreshHero(i);
-		show(&heroButton[i]);
+
+	for (i = 0; i <  MAX_ACTION_NUM; i++) {
+		actionButton[i].getPressedKey();
 	}
 
-
 	for (i = 0; i < MAX_ENEMY_NUM; i++) {
+		enemyButton[i].getPressedKey();
 		refreshEnemy(i);
 		show(&enemyButton[i]);
 	}
 
+	for (i = 0; i < MAX_HERO_NUM; i++) {
+		heroButton[i].getPressedKey();
+		refreshHero(i);
+		show(&heroButton[i]);
+	}
+
+	actionIndex = 0;
+	heroIndex = 0;
+	targetIndex = 0;
+	enemyTurnIndex = -1;
 
 	jumpTo(&heroButton[0]);
 }
@@ -199,22 +445,32 @@ void Battlefield::initAction()
 void Battlefield::refreshHero(int index)
 {
 	if (getPlayer().getHeroNum() > index) {
-		Hero hero = getPlayer().getHero(index);
-		string hpStr = to_string(hero.getHealthPoint()) + "/" + to_string(hero.getMaxHealthPoint());
-		string mpStr = to_string(hero.getManaPoint()) + "/" + to_string(hero.getMaxManaPoint());
-
+		Hero *hero = getPlayer().getHero(index);
 		heroButton[index].clear();
 		heroButton[index].setWriteCursor(0, 0);
-		heroButton[index].writeLine("[" + hero.getName() + "]");
-		heroButton[index].setWriteCursor(1, 2);
-		heroButton[index].writeLine("体力: " + hpStr);
-		heroButton[index].writeLine("魔力: " + mpStr);
-		heroButton[index].nextLine();
+		heroButton[index].writeLine("[" + hero->getName() + "]");
+
+		if (!hero->isDead()) {
+			string hpStr = to_string(hero->getHealthPoint()) + "/" + to_string(hero->getMaxHealthPoint());
+			string mpStr = to_string(hero->getManaPoint()) + "/" + to_string(hero->getMaxManaPoint());
+
+			heroButton[index].setWriteCursor(1, 2);
+			heroButton[index].writeLine("体力: " + hpStr);
+			heroButton[index].writeLine("魔力: " + mpStr);
+		}
+		else {
+			heroButton[index].setWriteCursor(3, 2);
+			heroButton[index].writeLine("失去战力");
+		}
+
+		heroButton[index].setWriteCursor(1, 5);
 		switch (heroTurn[index]) {
 		case(TURN_TYPE_END):
-			heroButton[index].writeLine("* 已行动 * " + mpStr);
+			heroButton[index].writeLine(" * 已行动 * ");
+			break;
 		case(TURN_TYPE_STUNNED):
-			heroButton[index].writeLine("* 无法行动 * " + mpStr);
+			heroButton[index].writeLine("* 无法行动 * ");
+			break;
 		}
 	}
 	else {
@@ -231,7 +487,13 @@ void Battlefield::refreshEnemy(int index)
 		enemyButton[index].setWriteCursor(BATTLEFIELD_ENEMY_BUTTON_WIDTH / 2, 0);
 		enemyButton[index].writeLine("[" + enemy[index].getName() + "]", UIElement::ALIGN_FRONT, BATTLEFIELD_ENEMY_BUTTON_WIDTH);
 		enemyButton[index].setWriteCursor(2, 2);
-		enemyButton[index].writeLine("体力:" + to_string(enemy[index].getHealthPoint()));
+		if (!enemy[index].isDead()) {
+			enemyButton[index].writeLine("体力:" + to_string(enemy[index].getHealthPoint()));
+		}
+		else {
+			enemyButton[index].writeLine("失去战力");
+		}
+
 	}
 	else {
 		enemyButton[index].clear();
@@ -269,9 +531,8 @@ void Battlefield::refresh()
 
 	if (!isOnKeyHandle()) {
 		int startHeight = height / 3;
-		int startWidth;
+		int startWidth = width / 2;
 		if (inSelecting) {
-			startWidth = width / 2;
 			print(startWidth, startHeight + 1, "←'、'→'键选择要行动的英雄", UIElement::ALIGN_FRONT);
 			print(startWidth, startHeight + 2, "'Z'键选择该英雄进行动作", UIElement::ALIGN_FRONT);
 			print(startWidth, startHeight + 3, "每回合每个英雄各可行动 1 次", UIElement::ALIGN_FRONT);
@@ -283,15 +544,27 @@ void Battlefield::refresh()
 			print(startWidth, startHeight + 2, "'Z'键确认动作的选择");
 			print(startWidth, startHeight + 4, tips);
 		}
+		else if (inTarget) {
+			print(startWidth, startHeight, tips, UIElement::ALIGN_FRONT);
+		}
 
 	}
 	else {
-		print(width / 2, 3, tips, UIElement::ALIGN_FRONT);
 		showPath();
 		showDescription();
+		print(width / 2, 5, tips, UIElement::ALIGN_FRONT);
 	}
 
 	UIElement::refresh();
+}
+
+void Battlefield::lateMessage(string msg)
+{
+	textButton.init(width / 2 - msg.length() / 2 - 2, height / 2 - 3, msg.length() + 4, 5);
+	textButton.clear();
+	textButton.setWriteCursor(2, 2);
+	textButton.writeLine(msg);
+	show(&textButton);
 }
 
 string Battlefield::firstName[MAX_ENEMY_FIRST_NAME_NUM] = {

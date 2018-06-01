@@ -31,7 +31,7 @@ public:
 	int getHeroNum()const;
 	int getEquipmentNum()const;
 	//通过数组下标来获取数据
-	Hero& getHero(const int index);
+	Hero* getHero(const int index);
 	Equipment& getEquipment(const int index);
 
 private:

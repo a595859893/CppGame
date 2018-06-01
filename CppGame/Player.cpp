@@ -3,13 +3,13 @@
 
 #include "Player.h"
 
-Player::Player() :money(1000), heroNum(0), equipmentNum(0) {}
+Player::Player() :money(100), heroNum(0), equipmentNum(0) {}
 
 int Player::getMoney() const { return money; }
 void Player::appendMoney(const int delta) { money += delta; }
 
 int Player::getHeroNum()const { return heroNum; }
-Hero& Player::getHero(const int index) { return heros[index]; }
+Hero* Player::getHero(const int index) { return &heros[index]; }
 
 bool Player::addHero(const Hero &hero) {
 	if (heroNum < MAX_HERO_NUM) {
@@ -22,7 +22,7 @@ bool Player::addHero(const Hero &hero) {
 }
 
 bool Player::removeHeroByIndex(const int index) {
-	if (index > 0 && index < heroNum) {
+	if (index >= 0 && index < heroNum) {
 		heroNum--;
 		heros[index] = heros[heroNum];
 		return true;

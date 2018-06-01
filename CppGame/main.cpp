@@ -14,6 +14,9 @@ void printWelcome();
 void startGame(Scene &firstScene, Player *firstPlayer);
 
 int main(int argc, char** argv) {
+	//随机种子初始化
+	srand((int)time(0));
+
 	//控制台参数初始化
 	SMALL_RECT rc{ 0,0,GAME_WINDOW_WIDTH - 1 , GAME_WINDOW_HEIGHT - 1 };
 	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), true, &rc);
@@ -63,9 +66,6 @@ void printWelcome() {
 void startGame(Scene &firstScene, Player *firstPlayer) {
 	int key;
 	bool firstKey = true;
-
-	//随机种子初始化
-	srand((int)time(0));
 
 	while (true)
 	{

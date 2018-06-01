@@ -33,6 +33,7 @@ public:
 
 
 	//数据获取函数
+	bool isDead() const;
 	int getMaxHealthPoint() const;
 	int getMaxManaPoint() const;
 	int getHealthPoint() const;

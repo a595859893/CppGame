@@ -106,8 +106,11 @@ void UIElement::focusOn(UIElement * target, UIElement * backElement)
 {
 	onKeyFocus = (backElement == this);
 	onKeyHandle = false;
-	target->onKeyFocus = true;
-	target->onKeyHandle = true;
+
+	if (target != NULL) {
+		target->onKeyFocus = true;
+		target->onKeyHandle = true;
+	}
 
 	if (backElement != NULL)
 		target->previousElement = backElement;
